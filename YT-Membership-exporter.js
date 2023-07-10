@@ -1,4 +1,5 @@
 javascript:(function(){
+    const app_version = "2023.07.11.0";
 
     const fetch_encode = async (urlList) => {
         const promises = [];
@@ -65,7 +66,23 @@ javascript:(function(){
                 transform-origin: bottom right;
             }
             
+            .notification-error {
+                background-color: #f88;
+                border-radius: 4px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+                padding: 10px;
+                margin-bottom: 10px;
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out;
+                transform: scale(1.2);
+                transform-origin: bottom right;
+            }
+            
             .notification.show {
+                opacity: 1;
+            }
+            
+            .notification-error.show {
                 opacity: 1;
             }`;
 
@@ -77,25 +94,26 @@ javascript:(function(){
         head.appendChild(styleElement);
     }
 
-    function create_notification(message) {
-      let container = document.getElementById('notification-container');
+    function create_notification(message, is_error=false) {
+        let container = document.getElementById('notification-container');
 
-      let notification = document.createElement('div');
-      notification.className = 'notification';
-      notification.textContent = message;
+        let notification = document.createElement('div');
+        notification.className = is_error ? 'notification-error' : 'notification';
+        notification.textContent = message;
 
-      container.appendChild(notification);
+        container.appendChild(notification);
 
-      setTimeout(function() {
-        notification.classList.remove('show');
+        const timeout = is_error ? 10000 : 5000;
         setTimeout(function() {
-          notification.remove();
-        }, 300);
-      }, 5000);
+            notification.classList.remove('show');
+            setTimeout(function() {
+            notification.remove();
+            }, 300);
+        }, timeout);
 
-      setTimeout(function() {
-        notification.classList.add('show');
-      }, 100);
+        setTimeout(function() {
+            notification.classList.add('show');
+        }, 100);
     }
 
     function logger(msg) {
