@@ -110,6 +110,11 @@ javascript:(function(){
 
     set_notification_container();
 
+    if (!window.location.pathname.startsWith("https://www.youtube.com/")) {
+        create_notification("Youtubeに移動してください。");
+        logger("Please move to Youtube.");
+        return;
+    }
 
     if (!window.location.pathname.endsWith("/membership")) {
         create_notification("メンバーシップページに移動してください。");
