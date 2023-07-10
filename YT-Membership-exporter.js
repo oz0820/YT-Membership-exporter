@@ -168,7 +168,7 @@ javascript:(function(){
     logger("stamp: " + Object.keys(stampData).length);
 
     if (Object.keys(badgeData).length === 0 || Object.keys(stampData).length === 0) {
-        create_notification("スタンプやバッジが読み込まれていない可能性がああります。");
+        create_notification("スタンプやバッジが読み込まれていない可能性があります。");
         create_notification("特典の詳細を表示して、読み込まれていることを確認してから再度実行してください。");
         logger("Execution terminated as the expected content was not found.");
         return;
