@@ -149,7 +149,7 @@ javascript:(function(){
     for(let i=0; i<badgeElements.length; i++) {
         let badgeTitle = badgeElements[i].querySelector('.badge-title.style-scope.ytd-sponsorships-loyalty-badges-renderer').innerText;
         let badgeImageSrc = badgeElements[i].querySelector('img').src;
-        badgeData[badgeTitle] = badgeImageSrc.split("=")[0];
+        badgeData[badgeTitle] = badgeImageSrc.split("=")[0] + "=s0";
     }
 
     let stampData = {};
@@ -159,7 +159,7 @@ javascript:(function(){
         if (stampAlt === "") {
             continue;
         }
-        stampData[stampAlt] = stampImageSrc.split("=")[0];
+        stampData[stampAlt] = stampImageSrc.split("=")[0] + "=s0";
     }
 
     create_notification("badge： " + Object.keys(badgeData).length);
