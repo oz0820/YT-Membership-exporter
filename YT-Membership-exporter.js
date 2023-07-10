@@ -110,7 +110,7 @@ javascript:(function(){
 
     set_notification_container();
 
-    if (!window.location.pathname.startsWith("https://www.youtube.com/")) {
+    if (!window.location.href.startsWith("https://www.youtube.com/")) {
         create_notification("Youtubeに移動してください。");
         logger("Please move to Youtube.");
         return;
