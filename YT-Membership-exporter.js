@@ -1,5 +1,5 @@
 javascript:(function(){
-    const app_version = "2023.07.11.0";
+    const app_version = "2023.07.11.1";
 
     const fetch_encode = async (urlList) => {
         const promises = [];
@@ -25,6 +25,36 @@ javascript:(function(){
 
         await Promise.all(promises);
         return base64Dict;
+    };
+
+    const fetch_channel_id = async (handle) => {
+        const promises = [];
+        let channel_id = null;
+        // ver.2
+        const url = "https://script.google.com/macros/s/AKfycbz2Ue9nQleLWx_2Sx6FbmqYA42QX6CXLG0C_giA8jC7AGtqWIpLVYgxU4Jtrsv1WjnF/exec?handle=" + handle;
+
+        promises.push(
+            fetch(url)
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    // successがtrueであることを確認してから処理を進める
+                    if (data.success) {
+                        const channelURL = data.channelURL;
+                        const parts = channelURL.split("/");
+                        channel_id = parts[parts.length - 1];
+                        logger("Channel ID:", channel_id);
+                        // ここからchannelURLを使った追加の処理を行うことができます
+                    } else {
+                        create_notification("チャンネルID APIのレスポンスが異常です。");
+                        logger("The channel ID API response is an error.");
+                    }
+                })
+        );
+
+        await Promise.all(promises);
+        return channel_id;
     };
 
     function download_json_file(jsonData, fileName) {
@@ -158,10 +188,6 @@ javascript:(function(){
         return;
     }
 
-    let channel_name = document.getElementById('channel-header-container').querySelector('yt-formatted-string[class="style-scope ytd-channel-name"]').innerHTML;
-    let channel_id = document.querySelector('link[rel="canonical"]').href.split("/")[4];
-    let export_file_name = `NA-[${channel_name}]-[${channel_id}].membership.json`;
-
 
     let badgeData = {};
     for(let i=0; i<badgeElements.length; i++) {
@@ -192,10 +218,15 @@ javascript:(function(){
         return;
     }
 
+
+    const channel_name = document.getElementById('channel-header-container').querySelector('yt-formatted-string[class="style-scope ytd-channel-name"]').innerHTML;
+    const channel_handle = document.querySelector('span[class="meta-item style-scope ytd-c4-tabbed-header-renderer"]').querySelector('yt-formatted-string').innerHTML;
+
     const processAndDownload = async () => {
-        const [badge_image, stamp_image] = await Promise.all([
+        let [badge_image, stamp_image, channel_id] = await Promise.all([
             fetch_encode(badgeData),
-            fetch_encode(stampData)
+            fetch_encode(stampData),
+            fetch_channel_id(channel_handle)
         ]);
 
         let export_data = {
@@ -205,12 +236,18 @@ javascript:(function(){
             stamp_image: stamp_image
         };
 
+        if (channel_id === null) {
+            create_notification("チャンネルIDの取得に失敗しました。異なるチャンネルIDで保存される可能性があります。", true);
+            create_notification("ページをリロードして再実行することを推奨します。", true);
+            channel_id = document.querySelector('link[rel="canonical"]').href.split("/")[4];
+        }
+
+        const export_file_name = `NA-[${channel_name}]-[${channel_id}].membership.json`;
+
         download_json_file(export_data, export_file_name);
-        create_notification("ダウンロードが完了しました。");
+        create_notification("データの取得が完了しました。");
     };
 
     processAndDownload();
-
-
 
 })();
