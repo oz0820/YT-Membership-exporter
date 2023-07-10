@@ -22,5 +22,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: Bookmarklet
+          name: YT-Membership-exporter.js
           path: export/YT-Membership-exporter.js
