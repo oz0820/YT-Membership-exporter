@@ -129,13 +129,18 @@ javascript:(function(){
 
     try {
         let channel_id = document.querySelector('link[rel="canonical"]').href.split("/")[4];
+        if (channel_id === undefined) {
+            create_notification("チャンネルIDを取得できません。リロードしてください。");
+            logger("Unable to get channel id. Please reload.");
+            return;
+        }
     } catch (e) {
         create_notification("チャンネルIDを取得できません。リロードしてください。");
         logger("Unable to get channel id. Please reload.");
         return;
     }
 
-    let channel_name = document.querySelector('yt-formatted-string[class="style-scope ytd-channel-name"]').innerHTML;
+    let channel_name = document.getElementById('channel-header-container').querySelector('yt-formatted-string[class="style-scope ytd-channel-name"]').innerHTML;
     let channel_id = document.querySelector('link[rel="canonical"]').href.split("/")[4];
     let export_file_name = `NA-[${channel_name}]-[${channel_id}].membership.json`;
 
