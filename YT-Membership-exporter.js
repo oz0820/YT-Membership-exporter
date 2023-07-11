@@ -1,5 +1,5 @@
 javascript:(function(){
-    const app_version = "2023.07.11.1";
+    const app_version = "2023.07.11.2";
 
     const fetch_encode = async (urlList) => {
         const promises = [];
@@ -191,7 +191,9 @@ javascript:(function(){
 
     let badgeData = {};
     for(let i=0; i<badgeElements.length; i++) {
-        let badgeTitle = badgeElements[i].querySelector('.badge-title.style-scope.ytd-sponsorships-loyalty-badges-renderer').innerText;
+        let badgeMatches = badgeElements[i].querySelector('.badge-title.style-scope.ytd-sponsorships-loyalty-badges-renderer').innerText.match(/\d+/);
+        let badgeTitle = badgeMatches ? badgeMatches[0] : "0";
+
         let badgeImageSrc = badgeElements[i].querySelector('img').src;
         badgeData[badgeTitle] = badgeImageSrc.split("=")[0] + "=s0";
     }
