@@ -16,11 +16,22 @@ jobs:
         with:
           python-version: '3.11'
           architecture: 'x64'
-      - name: Run Python
+      - name: Install dependencies
+        run: pip install -r
+      - name: Install pyinstaller
+        run: pip install pyinstaller
+
+      - name: export Bookmarklet
         run: python code_exporter.py
+      - name: export exe
+        run: pyinstaller --onefile YT-Membership-exporter.server.py
+
+      - name: move exe
+        run: mv dist/server.exe /export/YT-Membership-exporter.server.exe
+
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: Bookmarklet
-          path: export/YT-Membership-exporter.js
+          name: YT-Membership-exporter
+          path: export/

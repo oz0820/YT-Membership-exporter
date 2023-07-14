@@ -1,69 +1,7 @@
 javascript:(function(){
-    const app_version = "2023.07.11.2";
+    const app_version = "2023.07.15.0";
+    const server_url = "http://localhost:8081/";
 
-    const fetch_encode = async (urlList) => {
-        const promises = [];
-        const base64Dict = {};
-
-        for (let key in urlList) {
-            promises.push(
-                fetch(urlList[key])
-                .then(response => response.blob())
-                .then(blob => {
-                    return new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(blob);
-                    });
-                })
-                .then(base64Data => {
-                    base64Dict[key] = base64Data;
-                })
-            );
-        }
-
-        await Promise.all(promises);
-        return base64Dict;
-    };
-
-    const fetch_channel_id = async (handle) => {
-        const promises = [];
-        let channel_id = null;
-        // ver.2
-        const url = "https://script.google.com/macros/s/AKfycbz2Ue9nQleLWx_2Sx6FbmqYA42QX6CXLG0C_giA8jC7AGtqWIpLVYgxU4Jtrsv1WjnF/exec?handle=" + handle;
-
-        promises.push(
-            fetch(url)
-                .then(function(response) {
-                    return response.json();
-                })
-                .then(function(data) {
-                    // successがtrueであることを確認してから処理を進める
-                    if (data.success) {
-                        const channelURL = data.channelURL;
-                        const parts = channelURL.split("/");
-                        channel_id = parts[parts.length - 1];
-                        logger("Channel ID:", channel_id);
-                        // ここからchannelURLを使った追加の処理を行うことができます
-                    } else {
-                        create_notification("チャンネルID APIのレスポンスが異常です。");
-                        logger("The channel ID API response is an error.");
-                    }
-                })
-        );
-
-        await Promise.all(promises);
-        return channel_id;
-    };
-
-    function download_json_file(jsonData, fileName) {
-        const a = document.createElement("a");
-        const file = new Blob([JSON.stringify(jsonData, null, 2)], {type: "application/json"});
-        a.href = URL.createObjectURL(file);
-        a.download = fileName;
-        a.click();
-    }
 
     function set_notification_container() {
         let elm = document.getElementsByClassName("YT-Membership-exporter");
@@ -164,92 +102,59 @@ javascript:(function(){
         return;
     }
 
-    if (!window.location.pathname.endsWith("/membership")) {
-        create_notification("メンバーシップページに移動してください。");
-        logger("Membership page is not open.");
-        return;
-    }
-
-    let notSelectedElements = document.getElementsByClassName('badge-line badge-not-selected style-scope ytd-sponsorships-loyalty-badges-renderer style-scope ytd-sponsorships-loyalty-badges-renderer');
-    let selectedElements = document.getElementsByClassName('badge-line badge-selected style-scope ytd-sponsorships-loyalty-badges-renderer style-scope ytd-sponsorships-loyalty-badges-renderer');
-    let badgeElements = [...notSelectedElements, ...selectedElements];
-    let stampElements = document.querySelectorAll('yt-img-shadow.images.style-scope.ytd-sponsorships-perk-renderer.no-transition');
-
-    try {
-        let channel_id = document.querySelector('link[rel="canonical"]').href.split("/")[4];
-        if (channel_id === undefined) {
-            create_notification("チャンネルIDを取得できません。リロードしてください。");
-            logger("Unable to get channel id. Please reload.");
-            return;
+    let ytd_sponsorships = document.querySelector('div[class="expandable-content style-scope ytd-sponsorships-expandable-perks-renderer"]');
+    if (ytd_sponsorships !== null) {
+        if (ytd_sponsorships.getBoundingClientRect().width === 0 && ytd_sponsorships.getBoundingClientRect().height === 0) {
+            ytd_sponsorships = null;
         }
-    } catch (e) {
-        create_notification("チャンネルIDを取得できません。リロードしてください。");
-        logger("Unable to get channel id. Please reload.");
-        return;
     }
 
-
-    let badgeData = {};
-    for(let i=0; i<badgeElements.length; i++) {
-        let badgeMatches = badgeElements[i].querySelector('.badge-title.style-scope.ytd-sponsorships-loyalty-badges-renderer').innerText.match(/\d+/);
-        let badgeTitle = badgeMatches ? badgeMatches[0] : "0";
-
-        let badgeImageSrc = badgeElements[i].querySelector('img').src;
-        badgeData[badgeTitle] = badgeImageSrc.split("=")[0] + "=s0";
-    }
-
-    let stampData = {};
-    for(let i=0; i<stampElements.length; i++) {
-        let stampAlt = stampElements[i].querySelector('img').alt;
-        let stampImageSrc = stampElements[i].querySelector('img').src;
-        if (stampAlt === "") {
-            continue;
+    let tp_yt_paper_dialog = document.querySelector('tp-yt-paper-dialog[class="style-scope ytd-popup-container"]');
+    if (tp_yt_paper_dialog !== null) {
+        if (tp_yt_paper_dialog.getBoundingClientRect().width === 0 && tp_yt_paper_dialog.getBoundingClientRect().height === 0) {
+            tp_yt_paper_dialog = null;
         }
-        stampData[stampAlt] = stampImageSrc.split("=")[0] + "=s0";
     }
 
-    create_notification("badge： " + Object.keys(badgeData).length);
-    create_notification("stamp: " + Object.keys(stampData).length);
-    logger("badge： " + Object.keys(badgeData).length);
-    logger("stamp: " + Object.keys(stampData).length);
+    let display_name = document.querySelector('div[id="channel-container"]').querySelector('yt-formatted-string[class="style-scope ytd-channel-name"]').innerHTML;
 
-    if (Object.keys(badgeData).length === 0 || Object.keys(stampData).length === 0) {
-        create_notification("スタンプやバッジが読み込まれていない可能性があります。");
-        create_notification("特典の詳細を表示して、読み込まれていることを確認してから再度実行してください。");
-        logger("Execution terminated as the expected content was not found.");
+    if (ytd_sponsorships ===  null && tp_yt_paper_dialog === null) {
+        create_notification("要素を取得できませんでした。ページをリロードして、全ての要素を表示して再実行してください。");
         return;
     }
 
 
-    const channel_name = document.getElementById('channel-header-container').querySelector('yt-formatted-string[class="style-scope ytd-channel-name"]').innerHTML;
-    const channel_handle = document.querySelector('span[class="meta-item style-scope ytd-c4-tabbed-header-renderer"]').querySelector('yt-formatted-string').innerHTML;
-
-    const processAndDownload = async () => {
-        let [badge_image, stamp_image, channel_id] = await Promise.all([
-            fetch_encode(badgeData),
-            fetch_encode(stampData),
-            fetch_channel_id(channel_handle)
-        ]);
-
-        let export_data = {
-            badge: badgeData,
-            badge_image: badge_image,
-            stamp: stampData,
-            stamp_image: stamp_image
-        };
-
-        if (channel_id === null) {
-            create_notification("チャンネルIDの取得に失敗しました。異なるチャンネルIDで保存される可能性があります。", true);
-            create_notification("ページをリロードして再実行することを推奨します。", true);
-            channel_id = document.querySelector('link[rel="canonical"]').href.split("/")[4];
-        }
-
-        const export_file_name = `NA-[${channel_name}]-[${channel_id}].membership.json`;
-
-        download_json_file(export_data, export_file_name);
-        create_notification("データの取得が完了しました。");
+    let send_data = {
+        "href": window.location.href,
+        "display_name": display_name,
+        "ytd_sponsorships_expandable_perks_renderer": ytd_sponsorships ? ytd_sponsorships.outerHTML : "",
+        "tp_yt_paper_dialog": tp_yt_paper_dialog ? tp_yt_paper_dialog.outerHTML : ""
     };
 
-    processAndDownload();
+    create_notification("サーバーにデータを送信します。");
+    fetch(server_url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(send_data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+
+                    logger("saved.");
+                    for (let msg = 0; msg < data.message.length; msg++) {
+                        create_notification(data.message[msg]);
+                    }
+                } else {
+                    for (let msg = 0; msg < data.message.length; msg++) {
+                        create_notification(data.message[msg]);
+                    }
+                }
+
+            })
+            .catch(error => {
+                console.error('エラーが発生しました:', error);
+                create_notification('エラーが発生しました:' + error);
+            });
 
 })();
