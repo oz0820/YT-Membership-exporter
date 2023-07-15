@@ -1,6 +1,8 @@
 import os
 import sys
 
+sys.stdout.reconfigure(encoding='utf-8')
+
 
 def main():
     if len(sys.argv) == 2:
