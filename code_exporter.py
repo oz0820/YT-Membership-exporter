@@ -11,7 +11,7 @@ def main():
     os.makedirs("export", exist_ok=True)
 
     out = ""
-    with open(name, 'r', encoding='utf8') as f:
+    with open(name, 'r', encoding='utf-8') as f:
         for l in f.readlines():
             if l.strip().startswith("//"):
                 continue
@@ -25,7 +25,7 @@ def main():
                 print(l.strip(), end="")
                 out += l.strip()
 
-    with open("export/YT-Membership-exporter.js", "w", encoding="utf8") as f:
+    with open("export/YT-Membership-exporter.js", "w", encoding="utf-8") as f:
         f.write(out)
 
 

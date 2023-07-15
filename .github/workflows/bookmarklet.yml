@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Bookmarklet:
+  MakeLinux:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,7 +32,7 @@ jobs:
         run: pyinstaller --onefile YT-Membership-exporter.server.py
 
       - name: Move executable
-        run: move dist/YT-Membership-exporter.server export
+        run: mv dist/YT-Membership-exporter.server export
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
