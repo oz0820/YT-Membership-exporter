@@ -31,9 +31,11 @@ jobs:
       - name: Build executable
         run: pyinstaller --onefile YT-Membership-exporter.server.py
 
+      - name: Move executable
+        run: move dist/YT-Membership-exporter.server export
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
-        run: move dist/YT-Membership-exporter.server export
         with:
           name: YT-Membership-exporter.linux.zip
           path: export/
@@ -60,9 +62,11 @@ jobs:
       - name: Build exe
         run: pyinstaller --onefile YT-Membership-exporter.server.py
 
+      - name: Move executable
+        run: mv dist/YT-Membership-exporter.server.exe export
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
-        run: mv dist/YT-Membership-exporter.server.exe export
         with:
           name: YT-Membership-exporter.win.zip
           path: export/
