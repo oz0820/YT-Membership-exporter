@@ -27,7 +27,7 @@ jobs:
         run: sudo apt install -y libmagic1
 
       - name: Export Bookmarklet
-          run: python code_exporter.py
+        run: python code_exporter.py
       - name: Build executable
         run: pyinstaller --onefile YT-Membership-exporter.server.py
 
