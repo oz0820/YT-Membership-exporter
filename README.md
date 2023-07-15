@@ -1,6 +1,8 @@
 # YT-Membership-exporter
 メンバーシップページから、バッジとスタンプのデータを抜き取ってJSONに書き出す。
 
+Windows用のexeは調整中
+
 ## 概要
 Webブラウザでメンバーシップ特典を表示した状態でBookmarkletを実行すると、必要なhtml要素をローカルにPOSTします。  
 それをFastAPIで受け取って処理・保存します。  
