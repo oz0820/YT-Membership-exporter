@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  MakeLinux:
+  Bookmarklet:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
