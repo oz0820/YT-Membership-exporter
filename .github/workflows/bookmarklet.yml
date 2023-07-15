@@ -19,24 +19,12 @@ jobs:
           python-version: '3.9'
           architecture: 'x64'
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Install pyinstaller
-        run: pip install pyinstaller
-      - name: Install libmagic1
-        run: sudo apt install -y libmagic1
-
       - name: Export Bookmarklet
         run: python code_exporter.py
-      - name: Build executable
-        run: pyinstaller --onefile YT-Membership-exporter.server.py
-
-      - name: Move executable
-        run: mv dist/YT-Membership-exporter.server export
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: YT-Membership-exporter.linux.zip
+          name: Bookmarklet.zip
           path: export/
 
