@@ -32,11 +32,11 @@ jobs:
         run: pyinstaller --onefile YT-Membership-exporter.server.py
 
       - name: Upload Artifacts
-          uses: actions/upload-artifact@v3
-          run: move dist/YT-Membership-exporter.server export
-          with:
-            name: YT-Membership-exporter.linux.zip
-            path: export/
+        uses: actions/upload-artifact@v3
+        run: move dist/YT-Membership-exporter.server export
+        with:
+          name: YT-Membership-exporter.linux.zip
+          path: export/
 
   MakeWin:
     runs-on: windows-latest
