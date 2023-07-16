@@ -16,7 +16,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.11'
           architecture: 'x64'
 
       - name: Export Bookmarklet
@@ -26,5 +26,51 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Bookmarklet.zip
-          path: export/
+          path: export/YT-Membership-exporter.js
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          architecture: 'x64'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Install pyinstaller
+        run: pip install pyinstaller
+      - name: Install libmagic1
+        run: sudo apt install -y libmagic1
+
+      - name: Build executable
+        run: pyinstaller --onefile YT-Membership-exporter.server.py
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: YT-Membership-exporter.linux.zip
+          path: dist/YT-Membership-exporter.server
+
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Docker build
+        run: docker build -t buildapp .
+
+      - name: Build Installer with PyInstaller
+        run: docker run -v .\:C:/app buildapp pyinstaller --onefile --add-data "c:\Python\Lib\site-packages\magic\libmagic;.\" YT-Membership-exporter.server.py
+
+      - name: Upload Installer Executable as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: YT-Membership-exporter.server.exe.zip
+          path: dist/YT-Membership-exporter.server.exe
 
