@@ -6,7 +6,6 @@ const logger = new class {
     log(msg) {
         console.log("[YT-Membership-exporter] " + msg)
     }
-
     error(msg) {
         console.error("[YT-Membership-exporter] " + msg)
     }
@@ -30,12 +29,20 @@ const channel_data = async (channel_page_url) => {
             display_name: og_title
         }
     } catch (error) {
-        console.error('データの取得に失敗しました:', error)
+        logger.error('データの取得に失敗しました:', error)
         return {
             channel_id: null,
             display_name: null
         }
     }
+}
+
+const formatted_date = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = ('0' + (now.getMonth() + 1)).slice(-2)
+    const day = ('0' + now.getDate()).slice(-2)
+    return `${year}-${month}-${day}`
 }
 
 
@@ -58,8 +65,8 @@ if (location.pathname.startsWith('/watch')) {
     channel_id = tmp.channel_id
 }
 
-console.log('display_name', display_name)
-console.log('channel_id', channel_id)
+// logger.log('display_name', display_name)
+// logger.log('channel_id', channel_id)
 
 const contents_detail_button = document.querySelector('ytd-button-renderer.expand-collapse-button.ytd-sponsorships-expandable-perks-renderer')
 if (!!contents_detail_button) {
@@ -83,7 +90,6 @@ if (ytd_sponsorships !== null) {
 let tp_yt_paper_dialog = document.querySelector('tp-yt-paper-dialog.ytd-popup-container')
 if (!!tp_yt_paper_dialog) {
     if (tp_yt_paper_dialog.getBoundingClientRect().width !== 0 && tp_yt_paper_dialog.getBoundingClientRect().height !== 0) {
-        // let tp_yt_paper_dialog = document.querySelector('tp-yt-paper-dialog.ytd-popup-container')
         const tmp = tp_yt_paper_dialog.querySelectorAll('ytd-sponsorships-tier-renderer ytd-sponsorships-perks-renderer div#images-line')
         badge_elm = tmp[0]
         stamp_elm = !!tmp[1].querySelector('yt-img-shadow') ?
@@ -99,7 +105,7 @@ if (ytd_sponsorships === null && tp_yt_paper_dialog === null) {
     return
 }
 
-let badge_urls = {}
+const badge_urls = {}
 const badge_month = (i) => {
     if (i < 5) {
         return ['0', '1', '2', '6', '12'][i]
@@ -117,7 +123,7 @@ if (!!badge_elm) {
     })
 }
 
-let stamp_urls = {}
+const stamp_urls = {}
 if (!!stamp_elm) {
     stamp_elm.querySelectorAll('yt-img-shadow > img').forEach(elm => {
         try {
@@ -129,7 +135,7 @@ if (!!stamp_elm) {
             // const image_url_large = elm.src.split('=')[0] + '=s0'
             stamp_urls[stamp_name] = image_url
         } catch (e) {
-            console.error(e)
+            logger.error(e)
         }
 
     })
@@ -155,7 +161,7 @@ function blobToBase64(blob) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader()
         reader.onload = () => {
-            //console.log(reader.result)
+            //logger.log(reader.result)
             const base64String = reader.result
             resolve(base64String)
         }
@@ -170,7 +176,7 @@ await Promise.all(Object.entries(badge_urls).map(async ([key, url], i) => {
     const res = await fetch(url)
     const blob = await res.blob()
     badge_base64[key] = await blobToBase64(blob)
-    console.log(`badge ${i + 1} / ${Object.keys(stamp_urls).length}  ${url}`)
+    logger.log(`badge ${i + 1} / ${Object.keys(stamp_urls).length}  ${url}`)
 }))
 
 const stamp_base64 = {}
@@ -179,7 +185,7 @@ await Promise.all(Object.entries(stamp_urls).map(async ([key, url], i) => {
     const res = await fetch(url)
     const blob = await res.blob()
     stamp_base64[key] = await blobToBase64(blob)
-    console.log(`stamp ${i + 1} / ${Object.keys(stamp_urls).length}  ${url}`)
+    logger.log(`stamp ${i + 1} / ${Object.keys(stamp_urls).length}  ${url}`)
 }))
 
 const time_stamp = new Date().toISOString()
@@ -194,7 +200,7 @@ const export_json = {
     'stampImages': stamp_base64
 }
 
-const filename = `NA-[${display_name}]-[${channel_id}].membership.json`
+const filename = `NA-[${display_name}]-[${channel_id}].${formatted_date()}.membership.json`
 
 // ダウンロード処理
 const export_json_str = JSON.stringify(export_json, null, 2)
