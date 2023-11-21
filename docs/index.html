@@ -7,8 +7,19 @@
 <body>
 
 <script>
+    window.onload = async () => {
+        const res = await fetch('https://raw.githubusercontent.com/oz0820/YT-Membership-exporter/main/YT-Membership-exporter.js');
+        const code = await res.text();
+        document.querySelector('textarea#code_textarea').textContent = 'javascript:' + encodeURIComponent(code) + '();';
+    }
+
+    function copyClipboard() {
+        navigator.clipboard.writeText(document.querySelector('textarea#code_textarea').textContent);
+        alert('クリップボードにコピーしました');
+    }
 
 </script>
+
 
 <h1>YT-Membership-exporter</h1>
 <a href="https://github.com/oz0820/YT-Membership-exporter">Github Repository</a>
