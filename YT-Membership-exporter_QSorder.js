@@ -1,5 +1,5 @@
 (async function(){
-    const APP_VERSION = '2023.11.24DEV_qs'
+    const APP_VERSION = '2023.11.24.1_DEV_qs'
     const Github_Rep = 'https://github.com/oz0820/YT-Membership-exporter'
 
     // 外部のライブラリ読み込み
@@ -92,7 +92,7 @@
     try {
         const expand_button = document.querySelector('ytd-sponsorships-expandable-perks-renderer.ytd-section-list-renderer')
         const is_close = expand_button.hasAttribute('is-collapsed')
-        if (!is_close) {
+        if (is_close) {
             const contents_detail_button = document.querySelector('ytd-button-renderer.expand-collapse-button.ytd-sponsorships-expandable-perks-renderer')
             if (!!contents_detail_button) {
                 contents_detail_button.click()
