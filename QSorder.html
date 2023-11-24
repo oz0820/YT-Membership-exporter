@@ -2,15 +2,34 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/source-map@0.7.3/dist/source-map.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
     <title>YT-Membership-exporter</title>
 </head>
 <body>
 
 <script>
+    const get_compressed_code = async url => {
+        return await fetch(url)
+            .then(res => {
+                return res.text()
+            })
+            .then(async code => {
+                const result = await Terser.minify(code, {
+                    output: {comments: /APP_VERSION/}
+                })
+                return result.code
+            })
+        /*
+        .then(compressed_code => {
+            return encodeURIComponent(compressed_code)
+        })
+         */
+    }
+
     window.onload = async () => {
-        const res = await fetch('https://raw.githubusercontent.com/oz0820/YT-Membership-exporter/QSorder/YT-Membership-exporter_QSorder.js');
-        const code = await res.text();
-        document.querySelector('textarea#code_textarea').textContent = 'javascript:' + encodeURIComponent(code) + '();';
+        const code_url = 'https://raw.githubusercontent.com/oz0820/YT-Membership-exporter/QSorder/YT-Membership-exporter_QSorder.js'
+        document.querySelector('textarea#code_textarea').textContent = 'javascript:' + await get_compressed_code(code_url);
     }
 
     function copyClipboard() {
