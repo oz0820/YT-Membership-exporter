@@ -1,10 +1,20 @@
+javascript:
+/*
+APP_VERSION: 2023.11.24
+Github_Rep: https://github.com/oz0820/YT-Membership-exporter
+*/
 (async function(){
-const APP_VERSION = '2023.11.22'
-const Github_Rep = 'https://github.com/oz0820/YT-Membership-exporter'
-
+const APP_VERSION = '2023.11.24'
+    
 const logger = new class {
+    info(msg) {
+        console.info("[YT-Membership-exporter] " + msg)
+    }
     log(msg) {
         console.log("[YT-Membership-exporter] " + msg)
+    }
+    warn(msg) {
+        console.warn("[YT-Membership-exporter] " + msg)
     }
     error(msg) {
         console.error("[YT-Membership-exporter] " + msg)
@@ -64,9 +74,6 @@ if (location.pathname.startsWith('/watch')) {
     display_name = tmp.display_name
     channel_id = tmp.channel_id
 }
-
-// logger.log('display_name', display_name)
-// logger.log('channel_id', channel_id)
 
 const contents_detail_button = document.querySelector('ytd-button-renderer.expand-collapse-button.ytd-sponsorships-expandable-perks-renderer')
 if (!!contents_detail_button) {
@@ -213,3 +220,5 @@ document.body.appendChild(a)
 a.click()
 
 })
+
+();
