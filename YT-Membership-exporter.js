@@ -50,7 +50,7 @@ const formatted_date = () => {
 if (!window.location.href.startsWith("https://www.youtube.com/")) {
     logger.log('Youtubeに移動してください')
     alert('Youtubeに移動してください')
-    return
+    throw new Error('Youtubeに移動してください')
 }
 logger.log("start")
 
@@ -102,7 +102,7 @@ if (!!tp_yt_paper_dialog) {
 
 if (ytd_sponsorships === null && tp_yt_paper_dialog === null) {
     alert('要素を取得できませんでした。\n取得したい画像が表示されている事を確認してから再実行してください')
-    return
+    throw new Error('要素を取得できませんでした。')
 }
 
 const badge_urls = {}
@@ -130,7 +130,7 @@ if (!!stamp_elm) {
             const stamp_name = elm.alt
             const image_url = elm.src
             if (stamp_name === '' || image_url === '') {
-                return
+                throw new Error('スタンプ・URLを取得できませんでした')
             }
             // const image_url_large = elm.src.split('=')[0] + '=s0'
             stamp_urls[stamp_name] = image_url
@@ -145,14 +145,14 @@ for (let url of Object.values(badge_urls)) {
     if (url === '') {
         if (!confirm('メンバーバッジが検出できません\n続行しますか？')) {
             alert('取得したい画像が表示されている事を確認してから再実行してください')
-            return
+            throw new Error('メンバーバッジが検出できません')
         }
     }
 }
 if (Object.keys(stamp_urls).length === 0) {
-    if (!confirm('メンバースタンプが検出できません．\n続行しますか？')) {
+    if (!confirm('メンバースタンプが検出できません\n続行しますか？')) {
         alert('取得したい画像が表示されている事を確認してから再実行してください')
-        return
+        throw new Error('メンバースタンプが検出できません')
     }
 }
 
