@@ -69,20 +69,20 @@ const safe_file_name = (name) => {
 const get_image_ext = content_type => {
     const type = content_type.split('/')[1]
     const image_types = {
-        svg: '.svg',
-        jpeg: '.jpg',
-        jpg: '.jpg',
-        'vnd.microsoft.icon': '.ico',
-        'x-icon': '.ico',
-        tiff: '.tif',
-        apng: '.apng',
-        avif: '.avif',
-        bmp: '.bmp',
-        gif: '.gif',
-        png: '.png',
-        webp: '.webp'
+        svg: 'svg',
+        jpeg: 'jpg',
+        jpg: 'jpg',
+        'vnd.microsoft.icon': 'ico',
+        'x-icon': 'ico',
+        tiff: 'tif',
+        apng: 'apng',
+        avif: 'avif',
+        bmp: 'bmp',
+        gif: 'gif',
+        png: 'png',
+        webp: 'webp'
     }
-    return image_types[type] || `.${type}`
+    return image_types[type] || `${type}`
 }
 
 /*
@@ -254,7 +254,8 @@ const save_zip = async () => {
     await Promise.all(Object.entries(stamps).map(async ([key, stamp_dict], i) => {
         const res = await fetch(stamp_dict.url)
         const blob = await res.blob()
-        const file_name = safe_file_name(stamp_dict.id + get_image_ext(res.headers.get('content-type')))
+        const ext =  get_image_ext(res.headers.get('content-type'))
+        const file_name = safe_file_name(stamp_dict.id + '.' + ext)
         folder_stamp.file(file_name, blob)
         logger.log(`stamp ${i + 1} / ${Object.keys(stamps).length}  ${stamp_dict.url}`)
     }))
@@ -262,7 +263,8 @@ const save_zip = async () => {
     await Promise.all(Object.entries(badges).map(async ([key, stamp_data], i) => {
         const res = await fetch(stamp_data.url)
         const blob = await res.blob()
-        const file_name = safe_file_name(stamp_data.id + get_image_ext(res.headers.get('content-type')))
+        const ext = get_image_ext(res.headers.get('content-type'))
+        const file_name = safe_file_name(stamp_dict.id + '.' + ext)
         folder_badge.file(file_name, blob)
         logger.log(`badge ${i + 1} / ${Object.keys(badges).length}  ${stamp_data.url}`)
     }))
@@ -270,7 +272,8 @@ const save_zip = async () => {
     await Promise.all(Object.entries(channel_images).map(async ([key, url], i) => {
         const res = await fetch(url)
         const blob = await res.blob()
-        const file_name = safe_file_name(key + get_image_ext(res.headers.get('content-type')))
+        const ext = get_image_ext(res.headers.get('content-type'))
+        const file_name = safe_file_name(key + '.' + ext)
         zip.file(file_name, blob)
         logger.log(`channel_image ${i + 1} / ${Object.keys(badges).length}  ${url}`)
     }))
