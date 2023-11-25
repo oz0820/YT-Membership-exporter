@@ -4,7 +4,7 @@ APP_VERSION: 2023.11.25.1_DEV_qs
 Github_Rep: https://github.com/oz0820/YT-Membership-exporter
 */
 (async function(){
-const APP_VERSION = '2023.11.25.0_DEV_qs'
+const APP_VERSION = '2023.11.25.1_DEV_qs'
 
 // 外部のライブラリ読み込み
 const importInNoModule = (url) => new Promise(resolve => {
