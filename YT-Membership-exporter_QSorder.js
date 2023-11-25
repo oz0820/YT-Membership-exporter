@@ -1,6 +1,6 @@
 javascript:
 /*
-APP_VERSION: 2023.11.25.0_DEV_qs
+APP_VERSION: 2023.11.25.1_DEV_qs
 Github_Rep: https://github.com/oz0820/YT-Membership-exporter
 */
 (async function(){
@@ -160,7 +160,7 @@ if (ytd_sponsorships === null && tp_yt_paper_dialog === null) {
 }
 
 
-const badges = {}
+const badges_info = {}
 const badge_month = (i) => {
     if (i < 5) {
         return ['0', '1', '2', '6', '12'][i]
@@ -175,14 +175,14 @@ if (!!badge_elm) {
         const id = image_url.split('/')[image_url.split('/').length - 1].split('=')[0]
         logger.log(`id: ${id}\turl: ${image_url}`)
 
-        badges[month] = {
+        badges_info[month] = {
             'id': id,
             'url': image_url
         }
     })
 }
 
-const stamps = {}
+const stamps_info = {}
 if (!!stamp_elm) {
     stamp_elm.querySelectorAll('yt-img-shadow > img').forEach(elm => {
         try {
@@ -193,7 +193,7 @@ if (!!stamp_elm) {
             }
             const id = image_url.split('/')[image_url.split('/').length - 1].split('=')[0]
 
-            stamps[stamp_name] = {
+            stamps_info[stamp_name] = {
                 'id': id,
                 'url': image_url
             }
@@ -205,7 +205,7 @@ if (!!stamp_elm) {
 }
 
 /* チャンネルアイコンとトプ画を取得する */
-let channel_images;
+let channel_image_urls;
 try {
     const channel_banner_image_elm = document.querySelector('div#contentContainer.tp-yt-app-header div.page-header-banner-image.ytd-c4-tabbed-header-renderer')
     const banner_tmp = window.getComputedStyle(channel_banner_image_elm).getPropertyValue('--yt-channel-banner')
@@ -215,7 +215,7 @@ try {
     const avatar_elm = document.querySelector('div#channel-container.ytd-c4-tabbed-header-renderer yt-img-shadow img')
     const avatar_url = avatar_elm.src.split('=')[0]
 
-    channel_images = {
+    channel_image_urls = {
         'banner': banner_url,
         'banner_original': banner_og_url,
         'avatar': avatar_url
@@ -228,7 +228,7 @@ try {
     }
 }
 
-for (let url of Object.values(badges)) {
+for (let url of Object.values(badges_info)) {
     if (url === '') {
         if (!confirm('メンバーバッジが検出できません．\n続行しますか？')) {
             alert('取得したい画像が表示されている事を確認してから再実行してください')
@@ -236,7 +236,7 @@ for (let url of Object.values(badges)) {
         }
     }
 }
-if (Object.keys(stamps).length === 0) {
+if (Object.keys(stamps_info).length === 0) {
     if (!confirm('メンバースタンプが検出できません．\n続行しますか？')) {
         alert('取得したい画像が表示されている事を確認してから再実行してください')
         throw new Error('メンバースタンプが検出できません')
@@ -251,31 +251,38 @@ const save_zip = async () => {
     const folder_badge = zip.folder('badge')
     const folder_stamp = zip.folder('stamp')
 
-    await Promise.all(Object.entries(stamps).map(async ([key, stamp_dict], i) => {
+    await Promise.all(Object.entries(stamps_info).map(async ([key, stamp_dict], i) => {
         const res = await fetch(stamp_dict.url)
         const blob = await res.blob()
         const ext =  get_image_ext(res.headers.get('content-type'))
         const file_name = safe_file_name(stamp_dict.id + '.' + ext)
         folder_stamp.file(file_name, blob)
-        logger.log(`stamp ${i + 1} / ${Object.keys(stamps).length}  ${stamp_dict.url}`)
+        logger.log(`stamp ${i + 1} / ${Object.keys(stamps_info).length}  ${stamp_dict.url}`)
     }))
 
-    await Promise.all(Object.entries(badges).map(async ([key, stamp_data], i) => {
-        const res = await fetch(stamp_data.url)
+    await Promise.all(Object.entries(badges_info).map(async ([key, stamp_dict], i) => {
+        const res = await fetch(stamp_dict.url)
         const blob = await res.blob()
         const ext = get_image_ext(res.headers.get('content-type'))
         const file_name = safe_file_name(stamp_dict.id + '.' + ext)
         folder_badge.file(file_name, blob)
-        logger.log(`badge ${i + 1} / ${Object.keys(badges).length}  ${stamp_data.url}`)
+        logger.log(`badge ${i + 1} / ${Object.keys(badges_info).length}  ${stamp_dict.url}`)
     }))
 
-    await Promise.all(Object.entries(channel_images).map(async ([key, url], i) => {
+
+    const channel_image_info = {}
+    await Promise.all(Object.entries(channel_image_urls).map(async ([key, url], i) => {
         const res = await fetch(url)
         const blob = await res.blob()
         const ext = get_image_ext(res.headers.get('content-type'))
         const file_name = safe_file_name(key + '.' + ext)
         zip.file(file_name, blob)
-        logger.log(`channel_image ${i + 1} / ${Object.keys(badges).length}  ${url}`)
+
+        channel_image_info[key] = {
+            url: url,
+            ext: ext
+        }
+        logger.log(`channel_image ${i + 1} / ${Object.keys(badges_info).length}  ${url}`)
     }))
 
 
@@ -285,9 +292,9 @@ const save_zip = async () => {
         '_createdAt': time_stamp,
         'displayName': display_name,
         'channelId': channel_id,
-        'channelImages': channel_images,
-        'badges': badges,
-        'stamps': stamps,
+        'channelImages': channel_image_info,
+        'badges': badges_info,
+        'stamps': stamps_info,
     }
 
     const output_json_str = JSON.stringify(export_json, null, 2)
