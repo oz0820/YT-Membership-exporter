@@ -1,10 +1,10 @@
 javascript:
 /*
-APP_VERSION: 2023.11.24.2_DEV_qs
+APP_VERSION: 2023.11.25.0_DEV_qs
 Github_Rep: https://github.com/oz0820/YT-Membership-exporter
 */
 (async function(){
-const APP_VERSION = '2023.11.24.2_DEV_qs'
+const APP_VERSION = '2023.11.25.0_DEV_qs'
 
 // 外部のライブラリ読み込み
 const importInNoModule = (url) => new Promise(resolve => {
@@ -64,6 +64,25 @@ const safe_file_name = (name) => {
         default:
             return name.replace(/[\\\/:\*\?\"<>\|]/g, '_')
     }
+}
+
+const get_image_ext = content_type => {
+    const type = content_type.split('/')[1]
+    const image_types = {
+        svg: '.svg',
+        jpeg: '.jpg',
+        jpg: '.jpg',
+        'vnd.microsoft.icon': '.ico',
+        'x-icon': '.ico',
+        tiff: '.tif',
+        apng: '.apng',
+        avif: '.avif',
+        bmp: '.bmp',
+        gif: '.gif',
+        png: '.png',
+        webp: '.webp'
+    }
+    return image_types[type] || `.${type}`
 }
 
 /*
@@ -235,7 +254,7 @@ const save_zip = async () => {
     await Promise.all(Object.entries(stamps).map(async ([key, stamp_dict], i) => {
         const res = await fetch(stamp_dict.url)
         const blob = await res.blob()
-        const file_name = stamp_dict.id + '.png'
+        const file_name = safe_file_name(stamp_dict.id + get_image_ext(res.headers.get('content-type')))
         folder_stamp.file(file_name, blob)
         logger.log(`stamp ${i + 1} / ${Object.keys(stamps).length}  ${stamp_dict.url}`)
     }))
@@ -243,7 +262,7 @@ const save_zip = async () => {
     await Promise.all(Object.entries(badges).map(async ([key, stamp_data], i) => {
         const res = await fetch(stamp_data.url)
         const blob = await res.blob()
-        const file_name = stamp_data.id + '.png'
+        const file_name = safe_file_name(stamp_data.id + get_image_ext(res.headers.get('content-type')))
         folder_badge.file(file_name, blob)
         logger.log(`badge ${i + 1} / ${Object.keys(badges).length}  ${stamp_data.url}`)
     }))
@@ -251,7 +270,7 @@ const save_zip = async () => {
     await Promise.all(Object.entries(channel_images).map(async ([key, url], i) => {
         const res = await fetch(url)
         const blob = await res.blob()
-        const file_name = key + '.jpg'
+        const file_name = safe_file_name(key + get_image_ext(res.headers.get('content-type')))
         zip.file(file_name, blob)
         logger.log(`channel_image ${i + 1} / ${Object.keys(badges).length}  ${url}`)
     }))
