@@ -1,10 +1,10 @@
 javascript:
 /*
-APP_VERSION: 2023.11.25.1_DEV_qs
+APP_VERSION: 2023.12.08.0_qs
 Github_Rep: https://github.com/oz0820/YT-Membership-exporter
 */
 (async function(){
-const APP_VERSION = '2023.11.25.1_DEV_qs'
+const APP_VERSION = '2023.12.08.0_qs'
 
 // 外部のライブラリ読み込み
 const importInNoModule = (url) => new Promise(resolve => {
@@ -213,12 +213,14 @@ try {
     const banner_og_url = banner_url.slice(0, banner_url.match(/=w\d+-fcrop64/).index) + '=w0'
 
     const avatar_elm = document.querySelector('div#channel-container.ytd-c4-tabbed-header-renderer yt-img-shadow img')
-    const avatar_url = avatar_elm.src.split('=')[0]
+    const avatar_url = avatar_elm.src
+    const avatar_og_url = avatar_elm.src.split('=')[0] + '=w0'
 
     channel_image_urls = {
         'banner': banner_url,
         'banner_original': banner_og_url,
-        'avatar': avatar_url
+        'avatar': avatar_url,
+        'avatar_original': avatar_og_url
     }
 } catch (e) {
     logger.error(e)
