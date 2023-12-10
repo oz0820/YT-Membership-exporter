@@ -20,23 +20,24 @@
                 })
                 return result.code
             })
-            /*
-            .then(compressed_code => {
-                return encodeURIComponent(compressed_code)
-            })
-             */
     }
-
-    window.onload = async () => {
-        const code_url = 'https://raw.githubusercontent.com/oz0820/YT-Membership-exporter/main/YT-Membership-exporter.js'
-        document.querySelector('textarea#code_textarea').textContent = 'javascript:' + await get_compressed_code(code_url);
+    function get_url() {
+        const base_url = 'https://raw.githubusercontent.com/oz0820/YT-Membership-exporter/'
+        const urlParses = new URLSearchParams(location.search)
+        const hash = urlParses.get('hash') ? urlParses.get('hash') : 'main'
+        const file_name = urlParses.get('fileName') ? urlParses.get('fileName') : 'YT-Membership-exporter.js'
+        return base_url + hash + '/' + file_name
     }
-
     function copyClipboard() {
         navigator.clipboard.writeText(document.querySelector('textarea#code_textarea').textContent);
         alert('クリップボードにコピーしました');
     }
 
+    window.onload = async () => {
+        const code_url = get_url()
+        console.log('fetch: ', code_url)
+        document.querySelector('textarea#code_textarea').textContent = 'javascript:' + await get_compressed_code(code_url);
+    }
 </script>
 
 
