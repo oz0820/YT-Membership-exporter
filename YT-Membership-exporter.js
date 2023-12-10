@@ -1,10 +1,10 @@
 javascript:
 /*
-APP_VERSION: 2023.12.08.0_qs
+APP_VERSION: 2023.12.08.0
 Github_Rep: https://github.com/oz0820/YT-Membership-exporter
 */
 (async function(){
-const APP_VERSION = '2023.12.08.0_qs'
+const APP_VERSION = '2023.12.08.0'
 
 // 外部のライブラリ読み込み
 const importInNoModule = (url) => new Promise(resolve => {
