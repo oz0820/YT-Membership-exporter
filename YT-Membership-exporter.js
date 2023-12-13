@@ -1,10 +1,10 @@
 javascript:
 /*
-APP_VERSION: 2023.12.13.3
+APP_VERSION: 2023.12.13.4
 Github_Rep: https://github.com/oz0820/YT-Membership-exporter
 */
 (async function(){
-const APP_VERSION = '2023.12.13.3'
+const APP_VERSION = '2023.12.13.4'
 
 // 外部のライブラリ読み込み
 const importInNoModule = (url) => new Promise(resolve => {
@@ -331,22 +331,38 @@ const save_zip = async () => {
     const folder_badge = zip.folder('badge')
     const folder_stamp = zip.folder('stamp')
 
+    // blobの画像を食って縦横幅を返す
+    const get_hw = async blob => {
+        const img = new Image()
+        img.src = URL.createObjectURL(blob)
+        while (img.height === 0) {
+            await delay(5)
+        }
+        return [img.width, img.height]
+    }
+
     await Promise.all(Object.entries(stamps_info).map(async ([key, stamp_dict], i) => {
         const res = await my_fetch(stamp_dict.url)
         const blob = await res.blob()
         const ext = get_image_ext(res.headers.get('content-type'))
         const file_name = safe_file_name(stamp_dict.id + '.' + ext)
-        folder_stamp.file(file_name, blob)
-        // logger.info(`stamp ${i + 1} / ${Object.keys(stamps_info).length}  ${stamp_dict.url}`)
+        folder_stamp.file(file_name, blob);
+
+        [ stamp_dict['width'], stamp_dict['height'] ] = await get_hw(blob)
+        stamp_dict['ext'] = ext
+        badges_info[key] = stamp_dict
     }))
 
-    await Promise.all(Object.entries(badges_info).map(async ([key, stamp_dict], i) => {
-        const res = await my_fetch(stamp_dict.url)
+    await Promise.all(Object.entries(badges_info).map(async ([key, badge_dict], i) => {
+        const res = await my_fetch(badge_dict.url)
         const blob = await res.blob()
         const ext = get_image_ext(res.headers.get('content-type'))
-        const file_name = safe_file_name(stamp_dict.id + '.' + ext)
-        folder_badge.file(file_name, blob)
-        // logger.info(`badge ${i + 1} / ${Object.keys(badges_info).length}  ${stamp_dict.url}`)
+        const file_name = safe_file_name(badge_dict.id + '.' + ext)
+        folder_badge.file(file_name, blob);
+
+        [ badge_dict['width'], badge_dict['height'] ] = await get_hw(blob)
+        badge_dict['ext'] = ext
+        badges_info[key] = badge_dict
     }))
 
 
@@ -358,11 +374,13 @@ const save_zip = async () => {
         const file_name = safe_file_name(key + '.' + ext)
         zip.file(file_name, blob)
 
+        const [width, height] = await get_hw(blob)
         channel_image_info[key] = {
             url: url,
-            ext: ext
+            ext: ext,
+            width: width,
+            height: height
         }
-        // logger.info(`channel_image ${i + 1} / ${Object.keys(badges_info).length}  ${url}`)
     }))
 
 
@@ -383,8 +401,8 @@ const save_zip = async () => {
 
     const zip_blob = await zip.generateAsync({ type: 'blob' })
 
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(zip_blob);
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(zip_blob)
     a.download = `NA-[${display_name}]-[${channel_id}].${formatted_date()}.membership.zip`
     a.style.display = 'none'
     document.body.appendChild(a)
