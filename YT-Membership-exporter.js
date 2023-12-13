@@ -1,10 +1,10 @@
 javascript:
 /*
-APP_VERSION: 2023.12.13.2
+APP_VERSION: 2023.12.13.3
 Github_Rep: https://github.com/oz0820/YT-Membership-exporter
 */
 (async function(){
-const APP_VERSION = '2023.12.13.2'
+const APP_VERSION = '2023.12.13.3'
 
 // 外部のライブラリ読み込み
 const importInNoModule = (url) => new Promise(resolve => {
@@ -140,8 +140,9 @@ if (location.pathname.startsWith('/channel/') || location.pathname.startsWith('/
 const get_content_elms = async () => {
     const get = async () => {
         /*
-        特典が非表示の状態だと，スタンプが一部読み込まれない．
+        メンバー加入済みチャンネルで特典が非表示の状態だと，スタンプが一部読み込まれない．
         そのため，特典の情報を表示するボタンを押下してDOM上に表示させる
+        ついでに少しスクロールして全画像を読み込む
          */
         try {
             const expand_button = document.querySelector('ytd-sponsorships-expandable-perks-renderer.ytd-section-list-renderer')
@@ -150,13 +151,17 @@ const get_content_elms = async () => {
                 const contents_detail_button = document.querySelector('ytd-button-renderer.expand-collapse-button.ytd-sponsorships-expandable-perks-renderer')
                 if (!!contents_detail_button) {
                     contents_detail_button.click()
-                    await delay(500)
+                    await delay(200)
+                    window.scrollTo(0, 500)
+                    await delay(1000)
                 }
             }
         } catch (e) {
         }
-
+        
+        // 画像要素の直接の親要素を格納する
         let badge_elm, stamp_elm
+        
         // 加入済みの場合はこっち
         let ytd_sponsorships = document.querySelector('div.expandable-content.ytd-sponsorships-expandable-perks-renderer')
         if (!!ytd_sponsorships) {
@@ -181,7 +186,8 @@ const get_content_elms = async () => {
                 tp_yt_paper_dialog = null
             }
         }
-
+        
+        // 先頭はboolで，要素の取得に成功したときはtrueが入る
         return [(!!ytd_sponsorships || !!tp_yt_paper_dialog), badge_elm, stamp_elm]
     }
 
@@ -198,7 +204,9 @@ const get_content_elms = async () => {
                 break
             }
         }
-
+        // ちょっとスクロールして要素を全て読み込ませる
+        await delay(500)
+        document.querySelector('div#scrollable')?.scrollTo(0, 500)
         await delay(1000)
         let [isOK, badge_elm, stamp_elm] = await get()
 
@@ -212,10 +220,14 @@ const get_content_elms = async () => {
     }
 }
 
+// バッジとスタンプの要素が表示されているか家訓した上で，それぞれの親要素を返す
 let [badge_elm, stamp_elm] = await get_content_elms()
 
-const badges_info = {}
-const badge_month = (i) => {
+// この後要素を解析してURLや名前などを格納する
+const stamps_info = {},badges_info = {}
+
+// メンバーシップ継続期間とバッジの対応表
+const badge_month = (i) => { 
     if (i < 5) {
         return ['0', '1', '2', '6', '12'][i]
     } else {
@@ -224,26 +236,36 @@ const badge_month = (i) => {
 }
 if (!!badge_elm) {
     badge_elm.querySelectorAll('yt-img-shadow > img').forEach((elm, index) => {
-        const image_url = elm.src.split('=')[0]
-        const month = badge_month(index)
-        const id = image_url.split('/')[image_url.split('/').length - 1].split('=')[0]
-        logger.info(`id: ${id}\turl: ${image_url}`)
+        try {
+            const raw_image_url = elm.src
+            if (raw_image_url === '') {
+                throw new Error('バッジ画像のURLを取得できません' + elm)
+            }
+            const image_url = elm.src.split('=')[0]
+            const month = badge_month(index)
+            const id = image_url.split('/')[image_url.split('/').length - 1].split('=')[0]
 
-        badges_info[month] = {
-            'id': id,
-            'url': image_url
+            badges_info[month] = {
+                'id': id,
+                'url': image_url
+            }
+        } catch (e) {
+            logger.error('バッジ画像のURLを取得できません' + e)
+            alert('バッジ画像のURLを取得できません\n画面上に全ての画像が表示されていることを確認してから実行してください')
+            throw new Error('バッジ画像のURLを取得できません')
+            // ここで終了
         }
+        
     })
 }
 
-const stamps_info = {}
 if (!!stamp_elm) {
     stamp_elm.querySelectorAll('yt-img-shadow > img').forEach(elm => {
         try {
             const stamp_name = elm.alt
             const image_url = elm.src.split('=')[0]
             if (stamp_name === '' || image_url === '') {
-                throw new Error('スタンプ・URLを取得できません')
+                throw new Error('スタンプ画像のURLを取得できません')
             }
             const id = image_url.split('/')[image_url.split('/').length - 1].split('=')[0]
 
@@ -252,14 +274,16 @@ if (!!stamp_elm) {
                 'url': image_url
             }
         } catch (e) {
-            logger.error(e)
+            logger.error('スタンプ画像のURLを取得できません' + e)
+            alert('スタンプ画像のURLを取得できません\n画面上に全ての画像が表示されていることを確認してから実行してください')
+            throw new Error('スタンプ画像のURLを取得できません')
+            // ここで終了
         }
-
     })
 }
 
 /* チャンネルアイコンとトプ画を取得する */
-let channel_image_urls;
+let channel_image_urls
 try {
     const channel_banner_image_elm = document.querySelector('div#contentContainer.tp-yt-app-header div.page-header-banner-image.ytd-c4-tabbed-header-renderer')
     const banner_tmp = window.getComputedStyle(channel_banner_image_elm).getPropertyValue('--yt-channel-banner')
