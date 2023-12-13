@@ -15,8 +15,9 @@ const importInNoModule = (url) => new Promise(resolve => {
 });
 
 const logger = new class {
-    info(msg) {console.error("[YT-Membership-exporter] " + msg)}
+    info(msg) {console.info("[YT-Membership-exporter] " + msg)}
     log(msg) {console.log("[YT-Membership-exporter] " + msg)}
+    warn(msg) {console.warn("[YT-Membership-exporter] " + msg)}
     error(msg) {console.error("[YT-Membership-exporter] " + msg)}
 }
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
@@ -85,6 +86,34 @@ const get_image_ext = content_type => {
     return image_types[type] || `${type}`
 }
 
+const my_fetch = async url => {
+    const MAX_RETRY = 5
+    const RETRY_DELAY = 3000
+    let retry_count = 0
+
+    let res
+    while (retry_count < MAX_RETRY) {
+        try {
+            res = await fetch(url)
+            if (res.ok) {
+                return res
+            } else {
+                await delay(RETRY_DELAY)
+                logger.warn('RETRY ' + url)
+                retry_count += 1
+            }
+        } catch (e) {
+            await delay(RETRY_DELAY)
+            logger.warn('RETRY ' + url)
+            retry_count += 1
+        }
+    }
+    logger.error('ダウンロードに失敗しました\n'+url)
+    alert('ダウンロードに失敗しました\n'+url)
+    throw new Error('ダウンロードに失敗しました\n'+url)
+}
+
+
 /*
 ここまでツール的な関数
 
@@ -92,11 +121,11 @@ const get_image_ext = content_type => {
  */
 
 if (!window.location.href.startsWith("https://www.youtube.com/")) {
-    logger.log('Youtubeに移動してください')
+    logger.warn('Youtubeに移動してください')
     alert('Youtubeに移動してください')
     throw new Error('Youtube外で実行されました')
 }
-logger.log("start")
+logger.info("start")
 
 let display_name, channel_id
 if (location.pathname.startsWith('/channel/') || location.pathname.startsWith('/@')) {
@@ -198,7 +227,7 @@ if (!!badge_elm) {
         const image_url = elm.src.split('=')[0]
         const month = badge_month(index)
         const id = image_url.split('/')[image_url.split('/').length - 1].split('=')[0]
-        logger.log(`id: ${id}\turl: ${image_url}`)
+        logger.info(`id: ${id}\turl: ${image_url}`)
 
         badges_info[month] = {
             'id': id,
@@ -284,27 +313,27 @@ const save_zip = async () => {
     const folder_stamp = zip.folder('stamp')
 
     await Promise.all(Object.entries(stamps_info).map(async ([key, stamp_dict], i) => {
-        const res = await fetch(stamp_dict.url)
+        const res = await my_fetch(stamp_dict.url)
         const blob = await res.blob()
-        const ext =  get_image_ext(res.headers.get('content-type'))
+        const ext = get_image_ext(res.headers.get('content-type'))
         const file_name = safe_file_name(stamp_dict.id + '.' + ext)
         folder_stamp.file(file_name, blob)
-        logger.log(`stamp ${i + 1} / ${Object.keys(stamps_info).length}  ${stamp_dict.url}`)
+        // logger.info(`stamp ${i + 1} / ${Object.keys(stamps_info).length}  ${stamp_dict.url}`)
     }))
 
     await Promise.all(Object.entries(badges_info).map(async ([key, stamp_dict], i) => {
-        const res = await fetch(stamp_dict.url)
+        const res = await my_fetch(stamp_dict.url)
         const blob = await res.blob()
         const ext = get_image_ext(res.headers.get('content-type'))
         const file_name = safe_file_name(stamp_dict.id + '.' + ext)
         folder_badge.file(file_name, blob)
-        logger.log(`badge ${i + 1} / ${Object.keys(badges_info).length}  ${stamp_dict.url}`)
+        // logger.info(`badge ${i + 1} / ${Object.keys(badges_info).length}  ${stamp_dict.url}`)
     }))
 
 
     const channel_image_info = {}
     await Promise.all(Object.entries(channel_image_urls).map(async ([key, url], i) => {
-        const res = await fetch(url)
+        const res = await my_fetch(url)
         const blob = await res.blob()
         const ext = get_image_ext(res.headers.get('content-type'))
         const file_name = safe_file_name(key + '.' + ext)
@@ -314,7 +343,7 @@ const save_zip = async () => {
             url: url,
             ext: ext
         }
-        logger.log(`channel_image ${i + 1} / ${Object.keys(badges_info).length}  ${url}`)
+        // logger.info(`channel_image ${i + 1} / ${Object.keys(badges_info).length}  ${url}`)
     }))
 
 
@@ -337,16 +366,13 @@ const save_zip = async () => {
 
     const a = document.createElement('a');
     a.href = URL.createObjectURL(zip_blob);
-    a.download = `NA-[${display_name}]-[${channel_id}].${formatted_date()}.membership.zip`;
-
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.download = `NA-[${display_name}]-[${channel_id}].${formatted_date()}.membership.zip`
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
 }
-
 await save_zip()
 
 })
-
 ();
