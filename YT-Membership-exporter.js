@@ -1,10 +1,10 @@
 javascript:
 /*
-APP_VERSION: 2023.12.08.0
+APP_VERSION: 2023.12.13.0
 Github_Rep: https://github.com/oz0820/YT-Membership-exporter
 */
 (async function(){
-const APP_VERSION = '2023.12.08.0'
+const APP_VERSION = '2023.12.13.0'
 
 // 外部のライブラリ読み込み
 const importInNoModule = (url) => new Promise(resolve => {
@@ -214,14 +214,19 @@ try {
 
     const avatar_elm = document.querySelector('div#channel-container.ytd-c4-tabbed-header-renderer yt-img-shadow img')
     const avatar_url = avatar_elm.src
-    const avatar_og_url = avatar_elm.src.split('=')[0] + '=w0'
 
     channel_image_urls = {
         'banner': banner_url,
         'banner_original': banner_og_url,
         'avatar': avatar_url,
-        'avatar_original': avatar_og_url
     }
+
+    // ユーザーが設定したアバターの場合だけ保存する
+    // 自動生成の場合は，pathが /ytc/ から始まる
+    if (!(new URL(avatar_url).pathname.startsWith('/ytc/'))) {
+        channel_image_urls['avatar_original'] = avatar_url.split('=')[0] + '=w0'
+    }
+
 } catch (e) {
     logger.error(e)
     if (!confirm('バナー・アバター画像を検出できません．\n続行しますか？')) {
