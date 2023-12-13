@@ -1,10 +1,10 @@
 javascript:
 /*
-APP_VERSION: 2023.12.13.0
+APP_VERSION: 2023.12.13.1
 Github_Rep: https://github.com/oz0820/YT-Membership-exporter
 */
 (async function(){
-const APP_VERSION = '2023.12.13.0'
+const APP_VERSION = '2023.12.13.1'
 
 // 外部のライブラリ読み込み
 const importInNoModule = (url) => new Promise(resolve => {
@@ -108,57 +108,82 @@ if (location.pathname.startsWith('/channel/') || location.pathname.startsWith('/
     throw new Error('チャンネルページ以外で実行されました')
 }
 
-/*
-特典が非表示の状態だと，スタンプが一部読み込まれない．
-そのため，特典の情報を表示するボタンを押下してDOM上に表示させる
- */
-try {
-    const expand_button = document.querySelector('ytd-sponsorships-expandable-perks-renderer.ytd-section-list-renderer')
-    const is_close = expand_button.hasAttribute('is-collapsed')
-    if (is_close) {
-        const contents_detail_button = document.querySelector('ytd-button-renderer.expand-collapse-button.ytd-sponsorships-expandable-perks-renderer')
-        if (!!contents_detail_button) {
-            contents_detail_button.click()
-            await delay(500)
+const get_content_elms = async () => {
+    const get = async () => {
+        /*
+        特典が非表示の状態だと，スタンプが一部読み込まれない．
+        そのため，特典の情報を表示するボタンを押下してDOM上に表示させる
+         */
+        try {
+            const expand_button = document.querySelector('ytd-sponsorships-expandable-perks-renderer.ytd-section-list-renderer')
+            const is_close = expand_button.hasAttribute('is-collapsed')
+            if (is_close) {
+                const contents_detail_button = document.querySelector('ytd-button-renderer.expand-collapse-button.ytd-sponsorships-expandable-perks-renderer')
+                if (!!contents_detail_button) {
+                    contents_detail_button.click()
+                    await delay(500)
+                }
+            }
+        } catch (e) {
+        }
+
+        let badge_elm, stamp_elm
+        // 加入済みの場合はこっち
+        let ytd_sponsorships = document.querySelector('div.expandable-content.ytd-sponsorships-expandable-perks-renderer')
+        if (!!ytd_sponsorships) {
+            if (ytd_sponsorships.getBoundingClientRect().width === 0 && ytd_sponsorships.getBoundingClientRect().height === 0) {
+                ytd_sponsorships = null
+            } else {
+                badge_elm = ytd_sponsorships.querySelector('ytd-sponsorships-perk-renderer div.badge-container.ytd-sponsorships-loyalty-badges-renderer')
+                stamp_elm = ytd_sponsorships.querySelector('ytd-sponsorships-perk-renderer div#images-line')
+            }
+        }
+
+        // 未加入の場合はこっち
+        let tp_yt_paper_dialog = document.querySelector('tp-yt-paper-dialog.ytd-popup-container')
+        if (!!tp_yt_paper_dialog) {
+            if (tp_yt_paper_dialog.getBoundingClientRect().width !== 0 && tp_yt_paper_dialog.getBoundingClientRect().height !== 0) {
+                const tmp = tp_yt_paper_dialog.querySelectorAll('ytd-sponsorships-tier-renderer ytd-sponsorships-perks-renderer div#images-line')
+                badge_elm = tmp[0]
+                stamp_elm = !!tmp[1].querySelector('yt-img-shadow') ?
+                    tmp[1] :
+                    null
+            } else {
+                tp_yt_paper_dialog = null
+            }
+        }
+
+        return [(!!ytd_sponsorships || !!tp_yt_paper_dialog), badge_elm, stamp_elm]
+    }
+
+    let [isOK, badge_elm, stamp_elm] = await get()
+    if (isOK) {
+        return [badge_elm, stamp_elm]
+    } else {
+        // 見つからなかったら，メンバーシップボタンを押してもう一度試す
+        const see_perks_buttons= document.querySelectorAll('div#sponsor-button a')
+        const join_buttons = document.querySelectorAll('div#sponsor-button button')
+        for (const sponsor_button of Array.from(see_perks_buttons).concat(Array.from(join_buttons))) {
+            if (sponsor_button.clientWidth > 0) {
+                sponsor_button.click()
+                break
+            }
+        }
+
+        await delay(1000)
+        let [isOK, badge_elm, stamp_elm] = await get()
+
+        if (isOK) {
+            return [badge_elm, stamp_elm]
+        } else {
+            logger.error('要素を取得できませんでした。\n取得したい画像が表示されている事を確認してから再実行してください')
+            alert('要素を取得できませんでした。\n取得したい画像が表示されている事を確認してから再実行してください')
+            throw new Error('要素を取得できません')
         }
     }
-} catch (e) {
-    logger.info('メンバー特典表示ボタン不明')
 }
 
-
-let badge_elm, stamp_elm
-// 加入済みの場合はこっち
-let ytd_sponsorships = document.querySelector('div.expandable-content.ytd-sponsorships-expandable-perks-renderer')
-if (ytd_sponsorships !== null) {
-    if (ytd_sponsorships.getBoundingClientRect().width === 0 && ytd_sponsorships.getBoundingClientRect().height === 0) {
-        ytd_sponsorships = null
-    } else {
-        badge_elm = ytd_sponsorships.querySelector('ytd-sponsorships-perk-renderer div.badge-container.ytd-sponsorships-loyalty-badges-renderer')
-        stamp_elm = ytd_sponsorships.querySelector('ytd-sponsorships-perk-renderer div#images-line')
-    }
-}
-
-// 未加入の場合はこっち
-let tp_yt_paper_dialog = document.querySelector('tp-yt-paper-dialog.ytd-popup-container')
-if (!!tp_yt_paper_dialog) {
-    if (tp_yt_paper_dialog.getBoundingClientRect().width !== 0 && tp_yt_paper_dialog.getBoundingClientRect().height !== 0) {
-        const tmp = tp_yt_paper_dialog.querySelectorAll('ytd-sponsorships-tier-renderer ytd-sponsorships-perks-renderer div#images-line')
-        badge_elm = tmp[0]
-        stamp_elm = !!tmp[1].querySelector('yt-img-shadow') ?
-            tmp[1] :
-            null
-    } else {
-        tp_yt_paper_dialog = null
-    }
-}
-
-if (ytd_sponsorships === null && tp_yt_paper_dialog === null) {
-    logger.error('要素を取得できませんでした。\n取得したい画像が表示されている事を確認してから再実行してください')
-    alert('要素を取得できませんでした。\n取得したい画像が表示されている事を確認してから再実行してください')
-    throw new Error('要素を取得できません')
-}
-
+let [badge_elm, stamp_elm] = await get_content_elms()
 
 const badges_info = {}
 const badge_month = (i) => {
