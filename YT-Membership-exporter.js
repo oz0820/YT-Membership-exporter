@@ -1,10 +1,10 @@
 javascript:
 /*
-APP_VERSION: 2023.12.13.4
+APP_VERSION: 2023.12.14.0
 Github_Rep: https://github.com/oz0820/YT-Membership-exporter
 */
 (async function(){
-const APP_VERSION = '2023.12.13.4'
+const APP_VERSION = '2023.12.14.0'
 
 // 外部のライブラリ読み込み
 const importInNoModule = (url) => new Promise(resolve => {
@@ -287,7 +287,7 @@ let channel_image_urls
 try {
     const channel_banner_image_elm = document.querySelector('div#contentContainer.tp-yt-app-header div.page-header-banner-image.ytd-c4-tabbed-header-renderer')
     const banner_tmp = window.getComputedStyle(channel_banner_image_elm).getPropertyValue('--yt-channel-banner')
-    const banner_url = banner_tmp.slice(banner_tmp.match(/https/).index, banner_tmp.length-1).replace(/=w\d+-fcrop64/, '=w0-fcrop64')
+    const banner_url = banner_tmp.slice(banner_tmp.match(/https/).index, banner_tmp.length-1).replace(/=[w,s]\d+-fcrop64/, '=w0-fcrop64')
     const banner_og_url = banner_url.slice(0, banner_url.match(/=w\d+-fcrop64/).index) + '=w0'
 
     const avatar_elm = document.querySelector('div#channel-container.ytd-c4-tabbed-header-renderer yt-img-shadow img')
@@ -350,7 +350,7 @@ const save_zip = async () => {
 
         [ stamp_dict['width'], stamp_dict['height'] ] = await get_hw(blob)
         stamp_dict['ext'] = ext
-        badges_info[key] = stamp_dict
+        stamps_info[key] = stamp_dict
     }))
 
     await Promise.all(Object.entries(badges_info).map(async ([key, badge_dict], i) => {
